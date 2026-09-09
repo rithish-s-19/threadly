@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex justify-between align-center mb-4">
+    <h2>Shop All T-Shirts</h2>
+    <div style="display: flex; gap: 10px;">
+        <a href="{% url 'shop' %}?category=All" class="btn {% if request.GET.category == 'All' or not request.GET.category %}btn-primary{% endif %}">All</a>
+        <a href="{% url 'shop' %}?category=Men" class="btn {% if request.GET.category == 'Men' %}btn-primary{% endif %}">Men</a>
+        <a href="{% url 'shop' %}?category=Women" class="btn {% if request.GET.category == 'Women' %}btn-primary{% endif %}">Women</a>
+        <a href="{% url 'shop' %}?category=Unisex" class="btn {% if request.GET.category == 'Unisex' %}btn-primary{% endif %}">Unisex</a>
+    </div>
+</div>
+
+<div class="products-grid">
+    {% for product in products %}
+    <div class="product-card">
+        {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+        {% else %}
+            <div class="product-image" style="display:flex; align-items:center; justify-content:center; color:#999;">No Image</div>
+        {% endif %}
+        <div class="product-info">
+            <div class="product-name">{{ product.name }}</div>
+            <div class="product-price">₹{{ product.price }}</div>
+            <div style="font-size: 0.9rem; color: #777; margin-bottom: 5px;">
+                Colors: {{ product.available_colors }}
+            </div>
+            <div style="font-size: 0.9rem; color: #777; margin-bottom: 15px;">
+                Sizes: {{ product.available_sizes }}
+            </div>
+            <div class="flex" style="gap: 10px; margin-top: auto;">
+                <a href="{% url 'product_detail' product.id %}" class="btn" style="flex: 1; text-align: center;">View Details</a>
+                <a href="{% url 'customize' product.id %}" class="btn btn-primary" style="flex: 1; text-align: center;">Customize</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-center" style="grid-column: 1 / -1; margin-top: 40px;">No products found in this category.</p>
+    {% endfor %}
+</div>
+{% endblock %}

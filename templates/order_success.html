@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="text-center" style="padding: 60px 20px; max-width: 600px; margin: 0 auto;">
+    <div style="font-size: 4rem; margin-bottom: 20px;">✅</div>
+    <h1 style="margin-bottom: 15px;">Order placed successfully!</h1>
+    <p style="color: #666; margin-bottom: 30px;">Thank you for your order. We've received your request and will begin processing it shortly.</p>
+    
+    <div style="background: var(--card-bg); padding: 30px; border-radius: 8px; border: 1px solid var(--border-color); text-align: left; margin-bottom: 30px;">
+        <h3 style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Order Details</h3>
+        <p><strong>Order ID:</strong> #{{ order.id }}</p>
+        <p><strong>Customer Name:</strong> {{ order.full_name }}</p>
+        <p><strong>Delivery Address:</strong> {{ order.address }}, {{ order.city }}, {{ order.state }} - {{ order.pincode }}</p>
+        <p><strong>Status:</strong> <span style="background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 4px; font-size: 0.9rem; font-weight: 500;">{{ order.status }}</span></p>
+        <p style="font-size: 1.25rem; font-weight: bold; margin-top: 15px;">Total: ₹{{ order.total_price }}</p>
+        
+        <h4 style="margin-top: 20px; margin-bottom: 10px;">Items:</h4>
+        <ul style="list-style: none; padding: 0;">
+            {% for item in order.items.all %}
+            <li style="padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+                {{ item.quantity }}x {{ item.product.name }} ({{ item.color }}, {{ item.size }})
+                {% if item.custom_text or item.design %}
+                    <div style="font-size: 0.85rem; color: #666;">Customized</div>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <a href="{% url 'shop' %}" class="btn btn-primary">Continue Shopping</a>
+</div>
+{% endblock %}

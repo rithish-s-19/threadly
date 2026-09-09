@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="display: flex; gap: 40px; flex-wrap: wrap; margin-top: 40px;">
+    
+    <!-- Preview Section -->
+    <div style="flex: 1; min-width: 300px;">
+        <div id="tshirt-preview" style="position: relative; width: 100%; max-width: 500px; height: 500px; background-color: #f5f5f5; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; margin: 0 auto;">
+            
+            <!-- T-Shirt Base Image Placeholder -->
+            <div id="tshirt-base" style="width: 80%; height: 80%; background-color: white; mask-image: url('data:image/svg+xml;utf8,<svg viewBox=\"0 0 100 100\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M20,10 L40,20 L60,20 L80,10 L90,40 L70,50 L75,90 L25,90 L30,50 L10,40 Z\"/></svg>'); -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox=\"0 0 100 100\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M20,10 L40,20 L60,20 L80,10 L90,40 L70,50 L75,90 L25,90 L30,50 L10,40 Z\" fill=\"black\"/></svg>'); -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; transition: background-color 0.3s;"></div>
+
+            <!-- Custom Text/Design Overlay -->
+            <div id="overlay-container" style="position: absolute; top: 35%; left: 50%; transform: translateX(-50%); text-align: center; color: black; max-width: 60%; word-wrap: break-word;">
+                <div id="preview-design" style="font-size: 3rem; margin-bottom: 10px;"></div>
+                <div id="preview-text" style="font-weight: bold; font-size: 20px;"></div>
+            </div>
+            
+        </div>
+        <p class="text-center mt-4" style="color: #666;">Preview is for illustration purposes.</p>
+    </div>
+    
+    <!-- Controls Section -->
+    <div style="flex: 1; min-width: 300px; padding: 20px;">
+        <h1 style="font-size: 2rem; margin-bottom: 20px;">Customize: {{ product.name }}</h1>
+        
+        <form action="{% url 'add_to_cart' product.id %}" method="POST" id="customize-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="color">T-Shirt Color</label>
+                <select name="color" id="color" class="form-control">
+                    {% for color in product.get_colors_list %}
+                        <option value="{{ color }}">{{ color }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="size">Size</label>
+                <select name="size" id="size" class="form-control">
+                    {% for size in product.get_sizes_list %}
+                        <option value="{{ size }}">{{ size }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+            
+            <div class="form-group">
+                <label for="custom_text">Custom Text</label>
+                <input type="text" name="custom_text" id="custom_text" class="form-control" placeholder="e.g. Stay Wild" maxlength="30">
+            </div>
+
+            <div class="flex" style="gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="text_position">Text Position</label>
+                    <select name="text_position" id="text_position" class="form-control">
+                        <option value="Front">Front</option>
+                        <option value="Back">Back</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="flex: 1;">
+                    <label for="text_size">Text Size</label>
+                    <select name="text_size" id="text_size" class="form-control">
+                        <option value="Small">Small</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="Large">Large</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="design">Add Design/Logo</label>
+                <select name="design" id="design" class="form-control">
+                    <option value="">None</option>
+                    <option value="Minimal Heart">Minimal Heart (❤️)</option>
+                    <option value="Mountain">Mountain (⛰️)</option>
+                    <option value="Smile">Smile (😊)</option>
+                    <option value="Star">Star (⭐)</option>
+                    <option value="Lightning">Lightning (⚡)</option>
+                </select>
+            </div>
+            
+            <!-- Hidden quantity, default to 1 -->
+            <input type="hidden" name="quantity" value="1">
+            
+            <div style="font-size: 1.25rem; font-weight: bold; margin-bottom: 20px;">
+                Price: ₹{{ product.price }}
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem;">Add Customized T-Shirt to Cart</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const colorSelect = document.getElementById('color');
+        const customTextInput = document.getElementById('custom_text');
+        const textSizeSelect = document.getElementById('text_size');
+        const designSelect = document.getElementById('design');
+        
+        const tshirtBase = document.getElementById('tshirt-base');
+        const previewText = document.getElementById('preview-text');
+        const previewDesign = document.getElementById('preview-design');
+        const overlayContainer = document.getElementById('overlay-container');
+
+        // Color Mapping
+        const colorMap = {
+            'White': '#ffffff',
+            'Black': '#222222',
+            'Grey': '#808080',
+            'Navy': '#000080',
+            'Red': '#ff0000'
+        };
+
+        const designMap = {
+            'Minimal Heart': '❤️',
+            'Mountain': '⛰️',
+            'Smile': '😊',
+            'Star': '⭐',
+            'Lightning': '⚡',
+            '': ''
+        };
+
+        function updatePreview() {
+            // Update Color
+            const selectedColor = colorSelect.value;
+            const hexColor = colorMap[selectedColor] || '#ffffff';
+            tshirtBase.style.backgroundColor = hexColor;
+            
+            // Text color contrast
+            if (['Black', 'Navy', 'Red'].includes(selectedColor)) {
+                overlayContainer.style.color = 'white';
+            } else {
+                overlayContainer.style.color = 'black';
+            }
+
+            // Update Text
+            previewText.textContent = customTextInput.value;
+
+            // Update Text Size
+            const sizeMap = {
+                'Small': '14px',
+                'Medium': '20px',
+                'Large': '28px'
+            };
+            previewText.style.fontSize = sizeMap[textSizeSelect.value];
+
+            // Update Design
+            previewDesign.textContent = designMap[designSelect.value];
+        }
+
+        // Event Listeners
+        colorSelect.addEventListener('change', updatePreview);
+        customTextInput.addEventListener('input', updatePreview);
+        textSizeSelect.addEventListener('change', updatePreview);
+        designSelect.addEventListener('change', updatePreview);
+
+        // Initial update
+        updatePreview();
+    });
+</script>
+{% endblock %}

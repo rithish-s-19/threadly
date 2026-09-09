@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="hero">
+    <h1>Create a T-shirt that's uniquely yours.</h1>
+    <p>Choose your style, color and design. We make it. You wear it.</p>
+    <div class="hero-buttons">
+        <a href="{% url 'shop' %}" class="btn btn-primary">Shop T-Shirts</a>
+        <a href="{% url 'shop' %}" class="btn">Create Your Design</a>
+    </div>
+</section>
+
+<section class="mb-4">
+    <h2 class="text-center mb-4">Featured T-Shirts</h2>
+    <div class="products-grid">
+        {% for product in products %}
+        <div class="product-card">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+            {% else %}
+                <div class="product-image" style="display:flex; align-items:center; justify-content:center; color:#999;">No Image</div>
+            {% endif %}
+            <div class="product-info">
+                <div class="product-name">{{ product.name }}</div>
+                <div class="product-price">₹{{ product.price }}</div>
+                <div style="font-size: 0.9rem; color: #777; margin-bottom: 15px;">
+                    Colors: {{ product.available_colors }}
+                </div>
+                <a href="{% url 'customize' product.id %}" class="btn">Customize</a>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-center" style="grid-column: 1 / -1;">No products available.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<section style="background: #fff; padding: 60px 20px; border-radius: 8px; margin-top: 60px; text-align: center; border: 1px solid var(--border-color);">
+    <h2 class="mb-4">How It Works</h2>
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 40px;">
+        <div style="max-width: 250px;">
+            <h3 style="font-size: 1.5rem; margin-bottom: 10px;">1</h3>
+            <p style="font-weight: 500;">Choose your T-shirt</p>
+        </div>
+        <div style="max-width: 250px;">
+            <h3 style="font-size: 1.5rem; margin-bottom: 10px;">2</h3>
+            <p style="font-weight: 500;">Customize your design</p>
+        </div>
+        <div style="max-width: 250px;">
+            <h3 style="font-size: 1.5rem; margin-bottom: 10px;">3</h3>
+            <p style="font-weight: 500;">Order and wear it</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

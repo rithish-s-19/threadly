@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="mb-4">Shopping Cart</h1>
+
+{% if cart_items %}
+<div class="flex" style="gap: 30px; flex-wrap: wrap;">
+    <div style="flex: 2; min-width: 300px;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--border-color); text-align: left;">
+                    <th style="padding: 10px;">Product</th>
+                    <th style="padding: 10px;">Details</th>
+                    <th style="padding: 10px;">Qty</th>
+                    <th style="padding: 10px;">Price</th>
+                    <th style="padding: 10px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 15px 10px; display: flex; align-items: center; gap: 15px;">
+                        {% if item.product.image %}
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
+                        {% else %}
+                            <div style="width: 60px; height: 60px; background: #eee; border-radius: 4px;"></div>
+                        {% endif %}
+                        <div style="font-weight: 500;">{{ item.product.name }}</div>
+                    </td>
+                    <td style="padding: 15px 10px; font-size: 0.9rem; color: #555;">
+                        Size: {{ item.size }}<br>
+                        Color: {{ item.color }}
+                        {% if item.custom_text %}<br>Text: "{{ item.custom_text }}" ({{ item.text_size }}, {{ item.text_position }}){% endif %}
+                        {% if item.design %}<br>Design: {{ item.design }}{% endif %}
+                    </td>
+                    <td style="padding: 15px 10px;">{{ item.quantity }}</td>
+                    <td style="padding: 15px 10px; font-weight: 500;">₹{{ item.subtotal }}</td>
+                    <td style="padding: 15px 10px; text-align: right;">
+                        <a href="{% url 'remove_from_cart' item.key %}" style="color: red; font-size: 0.9rem;">Remove</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="flex: 1; min-width: 250px; background: var(--card-bg); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color); height: fit-content;">
+        <h3 class="mb-4">Order Summary</h3>
+        <div class="flex justify-between mb-2">
+            <span>Subtotal</span>
+            <span>₹{{ total }}</span>
+        </div>
+        <div class="flex justify-between mb-4" style="padding-bottom: 15px; border-bottom: 1px solid var(--border-color);">
+            <span>Shipping</span>
+            <span>Free</span>
+        </div>
+        <div class="flex justify-between mb-4" style="font-size: 1.25rem; font-weight: 600;">
+            <span>Total</span>
+            <span>₹{{ total }}</span>
+        </div>
+        <a href="{% url 'checkout' %}" class="btn btn-primary" style="display: block; width: 100%; text-align: center;">Proceed to Checkout</a>
+    </div>
+</div>
+{% else %}
+<div class="text-center" style="padding: 60px 20px;">
+    <h3 class="mb-4">Your cart is empty</h3>
+    <a href="{% url 'shop' %}" class="btn btn-primary">Continue Shopping</a>
+</div>
+{% endif %}
+{% endblock %}
