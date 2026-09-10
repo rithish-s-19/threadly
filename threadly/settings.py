@@ -27,7 +27,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-p*27b7ccvc464$q7p#%75
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['threadly-3-z5cj.onrender.com']
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
@@ -147,10 +147,3 @@ MAILERS = {
     },
 }
 
-# Paytm Settings
-PAYTM_MERCHANT_ID = os.environ.get('PAYTM_MERCHANT_ID', '')
-PAYTM_MERCHANT_KEY = os.environ.get('PAYTM_MERCHANT_KEY', '')
-PAYTM_WEBSITE = 'WEBSTAGING'
-PAYTM_CHANNEL_ID = 'WEB'
-PAYTM_INDUSTRY_TYPE_ID = 'Retail'
-PAYTM_ENVIRONMENT = 'https://securegw-stage.paytm.in/theia/processTransaction' # Test environment

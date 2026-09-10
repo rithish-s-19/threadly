@@ -5,7 +5,6 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib import messages
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-import paytmchecksum
 from .models import Product, Order, OrderItem
 import uuid
 import json
@@ -130,9 +129,6 @@ def checkout(request):
             total_price=total,
             status='Pending'
         )
-        
-        # generate unique paytm order id
-        order.paytm_order_id = f"ORDER_{order.id}_{uuid.uuid4().hex[:8]}"
         order.save()
         
         for key, item in cart_data.items():
@@ -152,72 +148,13 @@ def checkout(request):
             except Product.DoesNotExist:
                 pass
                 
-        # prepare Paytm parameters
-        paytm_dict = {
-            'MID': settings.PAYTM_MERCHANT_ID,
-            'ORDER_ID': order.paytm_order_id,
-            'TXN_AMOUNT': str(total),
-            'CUST_ID': f"CUST_{order.id}",
-            'INDUSTRY_TYPE_ID': settings.PAYTM_INDUSTRY_TYPE_ID,
-            'WEBSITE': settings.PAYTM_WEBSITE,
-            'CHANNEL_ID': settings.PAYTM_CHANNEL_ID,
-            'CALLBACK_URL': request.build_absolute_uri('/payment/verify/'),
-        }
-        
-        paytm_dict['CHECKSUMHASH'] = paytmchecksum.generateSignature(paytm_dict, settings.PAYTM_MERCHANT_KEY)
-        
-        # We don't clear cart here yet, we can clear it on success
-        return render(request, 'paytm_form.html', {
-            'paytm_dict': paytm_dict,
-            'paytm_environment': settings.PAYTM_ENVIRONMENT
-        })
+        # Clear cart on success
+        request.session['cart'] = {}
+        return redirect('order_success', order_id=order.id)
         
     return render(request, 'checkout.html', {'total': total})
 
-@csrf_exempt
-def payment_verify(request):
-    if request.method == 'POST':
-        data_dict = {}
-        for key in request.POST:
-            data_dict[key] = request.POST[key]
-            
-        checksum = data_dict.pop('CHECKSUMHASH', '')
-        
-        # Verify the signature
-        verify = False
-        if checksum:
-            try:
-                verify = paytmchecksum.verifySignature(data_dict, settings.PAYTM_MERCHANT_KEY, checksum)
-            except Exception:
-                verify = False
-        
-        if verify:
-            if data_dict.get('RESPCODE') == '01':
-                paytm_order_id = data_dict.get('ORDERID')
-                try:
-                    order = Order.objects.get(paytm_order_id=paytm_order_id)
-                    order.is_paid = True
-                    order.paytm_transaction_id = data_dict.get('TXNID')
-                    order.status = 'Processing'
-                    order.save()
-                    
-                    request.session['cart'] = {}
-                    return redirect('order_success', order_id=order.id)
-                except Order.DoesNotExist:
-                    messages.error(request, 'Order not found.')
-                    return redirect('shop')
-            else:
-                messages.error(request, f"Payment failed. Reason: {data_dict.get('RESPMSG')}")
-                return redirect('cart')
-        else:
-            paytm_msg = data_dict.get('RESPMSG')
-            if paytm_msg:
-                messages.error(request, f"Paytm error: {paytm_msg} (Check your API keys)")
-            else:
-                messages.error(request, 'Payment signature verification failed.')
-            return redirect('cart')
-            
-    return redirect('home')
+
 
 def order_success(request, order_id):
     order = get_object_or_404(Order, id=order_id)
